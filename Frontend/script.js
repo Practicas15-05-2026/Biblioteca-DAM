@@ -1,22 +1,30 @@
 const API_URL = 'http://localhost:3000/api/usuarios';
 const LIBROS_URL = 'http://localhost:3000/api/libros';
 
+async function procesarRespuesta(respuesta) {
+    const cuerpo = await respuesta.json();
+
+    if (!respuesta.ok) {
+        throw new Error(cuerpo.mensaje || 'Error en la peticion');
+    }
+
+    return cuerpo.data ?? cuerpo;
+}
+
 async function cargarUsuarios() {
     const respuesta = await fetch(API_URL);
     const datos = await respuesta.json();
     const tabla = document.getElementById('cuerpo-tabla-usuarios');
     if (!tabla) return;
-    tabla.innerHTML = '';
-    datos.forEach(usuario => {
-        tabla.innerHTML += `
-            <tr>
-                <td class="columna">${usuario.nombre}</td>
-                <td class="columna-boton">
-                    <button class="boton boton-editar " onclick="window.location.href='usuarios.html?id=${usuario.id}&nombre=${usuario.nombre}'">Editar</button>
-                    <button class="boton boton-borrar " onclick="eliminar(${usuario.id})">Eliminar</button>
-                </td>
-            </tr>`;
-    });
+    const datos = await fetch(API_URL).then(procesarRespuesta);
+    tabla.innerHTML = datos.map(u => `
+        <tr>
+            <td class="columna">${u.nombre}</td>
+            <td class="columna-boton">
+                <button class="boton boton-editar" onclick="prepararEdicion(${u.id}, '${u.nombre}')">Editar</button>
+                <button class="boton boton-borrar" onclick="eliminar(${u.id})">Eliminar</button>
+            </td>
+        </tr>`).join('');
 }
 
 function prepararEdicion(id, nombre) {
