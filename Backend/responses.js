@@ -17,12 +17,19 @@ function created(respuesta, data, mensaje = 'Recurso creado con éxito'){
     });
 }
 
+<<<<<<< HEAD
 function badRequest(respuesta, mensaje = 'Datos invalidos', detalles = null){
+=======
+function badRequest(respuesta, data, mensaje = 'Data invalid'){
+>>>>>>> refs/remotes/origin/feature/responseHandling
     return respuesta.status(400).json({
         ok: false,
         error : 'BAD_REQUEST',
         mensaje,
+<<<<<<< HEAD
         detalles
+=======
+>>>>>>> refs/remotes/origin/feature/responseHandling
     })
 }
 
@@ -39,4 +46,8 @@ module.exports = {
     created,
     badRequest,
     notFound
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> refs/remotes/origin/feature/responseHandling
