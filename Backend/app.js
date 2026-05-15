@@ -8,7 +8,9 @@ const puerto = 3000;
 
 app.use(cors()); 
 app.use(express.json());
-
+app.use(express.static(path.join(__dirname, '..', 'Frontend')));
+app.use('/css', express.static(path.join(__dirname, '..', 'css')));
+app.use('/api', rutas);
 app.listen(puerto, () => {
     console.log(`Servidor corriendo en: http://localhost:${puerto}`);
 });

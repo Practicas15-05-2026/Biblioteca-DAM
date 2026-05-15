@@ -1,0 +1,2 @@
+const baseDatos = require('./database');
+
