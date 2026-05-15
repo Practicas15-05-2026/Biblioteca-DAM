@@ -128,10 +128,12 @@ exports.obtenerLibros = (peticion, respuesta) => {
 
 exports.crearLibros = (peticion, respuesta) => {
     const { titulo, autor, usuarioId } = peticion.body;
+    const usuarioIdNormalizado = usuarioId || null;
+    const imagen = peticion.file ? `/uploads/${peticion.file.filename}` : null;
 
     baseDatos.run(
-        'INSERT INTO libros (titulo, autor, usuarioId) VALUES (?, ?, ?)',
-        [titulo, autor, usuarioId],
+        'INSERT INTO libros (titulo, autor, usuarioId, imagen) VALUES (?, ?, ?, ?)',
+        [titulo, autor, usuarioIdNormalizado, imagen],
         function(error) {
             if (error) {
                 return respuestas.badRequest(
@@ -143,7 +145,7 @@ exports.crearLibros = (peticion, respuesta) => {
 
             return respuestas.created(
                 respuesta,
-                { id: this.lastID, titulo, autor, usuarioId },
+                { id: this.lastID, titulo, autor, usuarioId: usuarioIdNormalizado, imagen },
                 'Libro creado correctamente'
             );
         }
@@ -153,10 +155,12 @@ exports.crearLibros = (peticion, respuesta) => {
 exports.actualizarLibros = (peticion, respuesta) => {
     const { titulo, autor, usuarioId } = peticion.body;
     const { id } = peticion.params;
+    const usuarioIdNormalizado = usuarioId || null;
+    const imagen = peticion.file ? `/uploads/${peticion.file.filename}` : null;
 
     baseDatos.run(
-        'UPDATE libros SET titulo = ?, autor = ?, usuarioId = ? WHERE id = ?',
-        [titulo, autor, usuarioId, id],
+        'UPDATE libros SET titulo = ?, autor = ?, usuarioId = ?, imagen = COALESCE(?, imagen) WHERE id = ?',
+        [titulo, autor, usuarioIdNormalizado, imagen, id],
         function(error) {
             if (error) {
                 return respuestas.badRequest(
@@ -175,7 +179,7 @@ exports.actualizarLibros = (peticion, respuesta) => {
 
             return respuestas.ok(
                 respuesta,
-                { id, titulo, autor, usuarioId },
+                { id, titulo, autor, usuarioId: usuarioIdNormalizado, imagen },
                 'Libro actualizado correctamente'
             );
         }
@@ -208,3 +212,5 @@ exports.borrarLibros = (peticion, respuesta) => {
         );
     });
 };
+
+

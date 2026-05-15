@@ -12,8 +12,15 @@ baseDatos.serialize(() => {
         titulo TEXT NOT NULL,
         autor TEXT NOT NULL,
         usuarioId INTEGER,
+        imagen TEXT,
         FOREIGN KEY (usuarioId) REFERENCES usuarios (id)
     )`);
+
+    baseDatos.run(`ALTER TABLE libros ADD COLUMN imagen TEXT`, (error) =>{
+        if (error && !error.message.includes('duplicate column name')){
+            console.error(error.message)
+        }
+    })
 });
 
 module.exports = baseDatos;
