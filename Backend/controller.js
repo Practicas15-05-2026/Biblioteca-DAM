@@ -1,5 +1,4 @@
 const baseDatos = require('./database');
-<<<<<<< HEAD
 const respuestas = require('./responses');
 
 exports.obtenerUsuarios = (peticion, respuesta) => {
@@ -17,29 +16,11 @@ exports.obtenerUsuarios = (peticion, respuesta) => {
             filas,
             'Usuarios obtenidos correctamente'
         );
-=======
-const respuestas = require('./responses')
-
-exports.obtenerUsuarios = (peticion, respuesta) => {
-    baseDatos.all("SELECT * FROM usuarios", [], function (error, filas){
-        if (error){
-            return respuestas.badRequest(
-                respuesta, 
-                'No se pudo obtener',
-                error.message
-            ) 
-        } 
-        return respuestas.ok(
-            respuesta,
-            filas,
-        )
->>>>>>> refs/remotes/origin/feature/responseHandling
     });
 };
 
 exports.crearUsuarios = (peticion, respuesta) => {
     const { nombre } = peticion.body;
-<<<<<<< HEAD
 
     baseDatos.run('INSERT INTO usuarios (nombre) VALUES (?)', [nombre], function(error) {
         if (error) {
@@ -55,20 +36,6 @@ exports.crearUsuarios = (peticion, respuesta) => {
             { id: this.lastID, nombre },
             'Usuario creado correctamente'
         );
-=======
-    baseDatos.run("INSERT INTO usuarios (nombre) VALUES (?)", [nombre], function(error) {
-        if (error){
-            return respuestasç.badRequest(
-                respuestas,
-                'No se puedo obtener',
-                error.message
-            )
-        }
-        return respuestas.ok(
-            respuesta,
-            'Usuario se creó correctamente',
-        )
->>>>>>> refs/remotes/origin/feature/responseHandling
     });
 };
 
@@ -98,11 +65,7 @@ exports.actualizarUsuario = (peticion, respuesta) => {
             if (this.changes === 0) {
                 return respuestas.notFound(
                     respuesta,
-<<<<<<< HEAD
                     `No existe ningun usuario con id ${id}`
-=======
-                    `No existe ningún usuario con id ${id}`
->>>>>>> refs/remotes/origin/feature/responseHandling
                 );
             }
 
@@ -116,7 +79,6 @@ exports.actualizarUsuario = (peticion, respuesta) => {
 };
 
 exports.borrarUsuario = (peticion, respuesta) => {
-<<<<<<< HEAD
     const { id } = peticion.params;
 
     baseDatos.run('DELETE FROM usuarios WHERE id = ?', [id], function(error) {
@@ -140,16 +102,6 @@ exports.borrarUsuario = (peticion, respuesta) => {
             { id },
             'Usuario eliminado correctamente'
         );
-=======
-    baseDatos.run("DELETE FROM usuarios WHERE id = ?", [peticion.params.id], function() {
-        if (this.changes === 0) {
-            return respuestas.notFound(
-                respuesta,
-                `No existe ningún usuario con id ${id}`
-            );
-        }
-        return respuesta.json({});
->>>>>>> refs/remotes/origin/feature/responseHandling
     });
 };
 
