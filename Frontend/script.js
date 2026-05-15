@@ -1,14 +1,80 @@
 const API_URL = 'http://localhost:3000/api/usuarios';
 const LIBROS_URL = 'http://localhost:3000/api/libros';
 
-async function procesarRespuesta(respuesta) {
-    const cuerpo = await respuesta.json();
+function mensajePorEstado(status) {
+    if (status === 400) return 'La peticion contiene datos invalidos';
+    if (status === 404) return 'El recurso solicitado no existe';
+    if (status >= 200 && status < 300) return 'Operacion realizada correctamente';
+    return 'Ha ocurrido un error inesperado';
+}
 
-    if (!respuesta.ok) {
-        throw new Error(cuerpo.mensaje || 'Error en la peticion');
+function mostrarMensaje(mensaje, tipo = 'info') {
+    let contenedor = document.getElementById('mensaje-estado');
+
+    if (!contenedor) {
+        contenedor = document.createElement('div');
+        contenedor.id = 'mensaje-estado';
+        const main = document.querySelector('main');
+        if (main) main.prepend(contenedor);
     }
 
-    return cuerpo.data ?? cuerpo;
+    contenedor.className = `mensaje-estado mensaje-${tipo}`;
+    contenedor.textContent = mensaje;
+}
+
+function limpiarMensaje() {
+    const contenedor = document.getElementById('mensaje-estado');
+    if (contenedor) contenedor.textContent = '';
+}
+
+function manejarError(error) {
+    console.error(error);
+
+    if (error.status === 400) {
+        mostrarMensaje(error.message, 'error');
+        return;
+    }
+
+    if (error.status === 404) {
+        mostrarMensaje(error.message, 'warning');
+        return;
+    }
+
+    mostrarMensaje('No se pudo conectar con el servidor', 'error');
+}
+
+async function procesarRespuesta(respuesta) {
+    let cuerpo = {};
+
+    try {
+        cuerpo = await respuesta.json();
+    } catch (error) {
+        cuerpo = {};
+    }
+
+    if (respuesta.ok) {
+        return cuerpo;
+    }
+
+    const error = new Error(cuerpo.mensaje || mensajePorEstado(respuesta.status));
+    error.status = respuesta.status;
+    error.codigo = cuerpo.error;
+    error.detalles = cuerpo.detalles;
+    throw error;
+}
+
+function obtenerDatos(cuerpo) {
+    if (Array.isArray(cuerpo)) return cuerpo;
+    return cuerpo.data || [];
+}
+
+function textoSeguro(valor) {
+    return String(valor ?? '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
 }
 
 async function cargarUsuarios() {
@@ -16,11 +82,12 @@ async function cargarUsuarios() {
     if (!tabla) return;
 
     try {
-        const usuarios = await fetch(API_URL).then(procesarRespuesta);
+        const cuerpo = await fetch(API_URL).then(procesarRespuesta);
+        const usuarios = obtenerDatos(cuerpo);
 
         tabla.innerHTML = usuarios.map(usuario => `
             <tr>
-                <td class="columna">${usuario.nombre}</td>
+                <td class="columna">${textoSeguro(usuario.nombre)}</td>
                 <td class="columna-boton">
                     <button class="boton boton-editar" onclick="window.location.href='usuarios.html?id=${usuario.id}&nombre=${encodeURIComponent(usuario.nombre)}'">Editar</button>
                     <button class="boton boton-borrar" onclick="eliminar(${usuario.id})">Eliminar</button>
@@ -28,7 +95,7 @@ async function cargarUsuarios() {
             </tr>
         `).join('');
     } catch (error) {
-        console.error('Error al cargar usuarios:', error);
+        manejarError(error);
         tabla.innerHTML = `
             <tr>
                 <td class="columna" colspan="2">No se pudieron cargar los usuarios</td>
@@ -43,6 +110,7 @@ function prepararEdicion(id, nombre) {
         id = params.get('id');
         nombre = params.get('nombre');
     }
+
     if (!id || !nombre) return;
 
     document.getElementById('usuario-id').value = id;
@@ -57,13 +125,15 @@ function limpiarformulario() {
     document.getElementById('titulo-formulario').innerText = 'Registrar Usuario';
     document.getElementById('boton-enviar').innerText = 'Guardar Usuario';
 }
+
 const usuarioFormulario = document.getElementById('usuario-formulario');
 if (usuarioFormulario) {
-    usuarioFormulario.addEventListener('submit', async (e) => {
-        e.preventDefault();
+    usuarioFormulario.addEventListener('submit', async (evento) => {
+        evento.preventDefault();
+        limpiarMensaje();
+
         const id = document.getElementById('usuario-id').value;
         const nombre = document.getElementById('nombre').value;
-
         const metodo = id ? 'PUT' : 'POST';
         const url = id ? `${API_URL}/${id}` : API_URL;
 
@@ -73,61 +143,62 @@ if (usuarioFormulario) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ nombre })
             });
+            const cuerpo = await procesarRespuesta(respuesta);
 
-            if (respuesta.status === 201 || respuesta.status === 200) {
-                limpiarformulario();
-                cargarUsuarios();
-                actualizarSeleccionUsuarios();
-            } else if (respuesta.status === 400) {
-                alert("Error 400: Datos inválidos");
-            } else if (respuesta.status === 404) {
-                alert("Error 404: Usuario no encontrado");
-            }
+            mostrarMensaje(cuerpo.mensaje || mensajePorEstado(respuesta.status), 'success');
+            limpiarformulario();
+            cargarUsuarios();
+            actualizarSeleccionUsuarios();
         } catch (error) {
-            console.error("Error:", error);
+            manejarError(error);
         }
     });
 }
 
 async function eliminar(id) {
-    if (confirm('¿Seguro?')) {
+    if (!confirm('Seguro?')) return;
+
+    try {
         const respuesta = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
-        if (respuesta.status === 200) {
-            cargarUsuarios();
-            actualizarSeleccionUsuarios();
-        } else if (respuesta.status === 404) {
-            alert("Error 404: No encontrado");
-        }
+        const cuerpo = await procesarRespuesta(respuesta);
+
+        mostrarMensaje(cuerpo.mensaje || mensajePorEstado(respuesta.status), 'success');
+        cargarUsuarios();
+        actualizarSeleccionUsuarios();
+    } catch (error) {
+        manejarError(error);
     }
 }
 
 async function cargarLibros() {
+    const tabla = document.getElementById('tablas-libro');
+    if (!tabla) return;
+
     try {
-        const respuesta = await fetch(LIBROS_URL);
-        if (respuesta.status === 200) {
-            const libros = await procesarRespuesta(respuesta);
-            const tabla = document.getElementById('tablas-libro');
-            if (tabla) {
-                tabla.innerHTML = '';
-                libros.forEach(lib => {
-                    tabla.innerHTML += `
-                    <tr class="block">
-                        <td class="columna titulo">Titulo : <span>${lib.titulo}</span></td>
-                        <td class="columna">Autor : ${lib.autor}</td>
-                        <td class="columna">Dueño : ${lib.dueno || 'Sin asignar'}</td>
-                        <div class="columna-boton">
-                            <button class="boton boton-editar " 
-                                onclick="window.location.href='registrar-libros.html?id=${lib.id}&titulo=${lib.titulo}&autor=${lib.autor}&usuarioId=${lib.usuarioId}'">
-                                Editar
-                            </button>
-                            <button class="boton boton-borrar " onclick="eliminarLibro(${lib.id})">Eliminar</button>
-                        </div>
-                    </tr>`;
-                });
-            }
-        }
+        const cuerpo = await fetch(LIBROS_URL).then(procesarRespuesta);
+        const libros = obtenerDatos(cuerpo);
+
+        tabla.innerHTML = libros.map(libro => `
+            <tr class="block">
+                <td class="columna">
+                    ${libro.imagen ? `<img class="imagen-libro" src="${textoSeguro(libro.imagen)}" alt="${textoSeguro(libro.titulo)}">` : 'Sin imagen'}
+                </td>
+                <td class="columna titulo">Titulo: <span>${textoSeguro(libro.titulo)}</span></td>
+                <td class="columna">Autor: ${textoSeguro(libro.autor)}</td>
+                <td class="columna">Dueno: ${textoSeguro(libro.dueno || 'Sin asignar')}</td>
+                <td class="columna-boton">
+                    <button class="boton boton-editar" onclick="window.location.href='registrar-libros.html?id=${libro.id}&titulo=${encodeURIComponent(libro.titulo)}&autor=${encodeURIComponent(libro.autor)}&usuarioId=${libro.usuarioId || ''}'">Editar</button>
+                    <button class="boton boton-borrar" onclick="eliminarLibro(${libro.id})">Eliminar</button>
+                </td>
+            </tr>
+        `).join('');
     } catch (error) {
-        console.error("Error al cargar libros:", error);
+        manejarError(error);
+        tabla.innerHTML = `
+            <tr>
+                <td class="columna" colspan="5">No se pudieron cargar los libros</td>
+            </tr>
+        `;
     }
 }
 
@@ -139,12 +210,13 @@ function prepararEdicionLibro(id, titulo, autor, usuarioId) {
         autor = params.get('autor');
         usuarioId = params.get('usuarioId');
     }
+
     if (!id) return;
+
     document.getElementById('libro-id').value = id;
     document.getElementById('titulo').value = titulo;
     document.getElementById('autor').value = autor;
-    document.getElementById('seleccion-usuario').value = usuarioId || "";
-
+    document.getElementById('seleccion-usuario').value = usuarioId || '';
     document.getElementById('libro-titulo-formulario').innerText = 'Editar Libro';
     document.getElementById('boton-libro-enviar').innerText = 'Actualizar Libro';
 }
@@ -157,17 +229,17 @@ function limpiarlibroFormulario() {
 }
 
 async function actualizarSeleccionUsuarios() {
-    try {
-        const usuarios = await fetch(API_URL).then(procesarRespuesta);
-        const seleccion = document.getElementById('seleccion-usuario');
-        if (!seleccion) return;
+    const seleccion = document.getElementById('seleccion-usuario');
+    if (!seleccion) return;
 
-        seleccion.innerHTML = '<option value="">Sin dueño</option>';
-        usuarios.forEach(usuario => {
-            seleccion.innerHTML += `<option value="${usuario.id}">${usuario.nombre}</option>`;
-        });
+    try {
+        const cuerpo = await fetch(API_URL).then(procesarRespuesta);
+        const usuarios = obtenerDatos(cuerpo);
+
+        seleccion.innerHTML = '<option value="">Sin dueno</option>' +
+            usuarios.map(usuario => `<option value="${usuario.id}">${textoSeguro(usuario.nombre)}</option>`).join('');
     } catch (error) {
-        console.error("Error al actualizar seleccion:", error);
+        manejarError(error);
     }
 }
 
@@ -175,13 +247,19 @@ const libroFormulario = document.getElementById('libro-formulario');
 if (libroFormulario) {
     libroFormulario.addEventListener('submit', async (evento) => {
         evento.preventDefault();
+        limpiarMensaje();
 
         const id = document.getElementById('libro-id').value;
-        const datos = {
-            titulo: document.getElementById('titulo').value,
-            autor: document.getElementById('autor').value,
-            usuarioId: document.getElementById('seleccion-usuario').value || null
-        };
+        const datos = new FormData();
+        const imagen = document.getElementById('imagen').files[0];
+
+        datos.append('titulo', document.getElementById('titulo').value);
+        datos.append('autor', document.getElementById('autor').value);
+        datos.append('usuarioId', document.getElementById('seleccion-usuario').value || '');
+
+        if (imagen) {
+            datos.append('imagen', imagen);
+        }
 
         const metodo = id ? 'PUT' : 'POST';
         const url = id ? `${LIBROS_URL}/${id}` : LIBROS_URL;
@@ -189,32 +267,30 @@ if (libroFormulario) {
         try {
             const respuesta = await fetch(url, {
                 method: metodo,
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(datos)
+                body: datos
             });
+            const cuerpo = await procesarRespuesta(respuesta);
 
-            if (respuesta.status === 201 || respuesta.status === 200) {
-                limpiarlibroFormulario();
-                cargarLibros();
-            } else if (respuesta.status === 400) {
-                alert("Error 400: Datos del libro incompletos");
-            } else if (respuesta.status === 404) {
-                alert("Error 404: Libro no encontrado");
-            }
+            mostrarMensaje(cuerpo.mensaje || mensajePorEstado(respuesta.status), 'success');
+            limpiarlibroFormulario();
+            cargarLibros();
         } catch (error) {
-            console.error("Error en libros:", error);
+            manejarError(error);
         }
     });
 }
 
 async function eliminarLibro(id) {
-    if (confirm('¿Estás seguro de eliminar este libro?')) {
+    if (!confirm('Seguro de eliminar este libro?')) return;
+
+    try {
         const respuesta = await fetch(`${LIBROS_URL}/${id}`, { method: 'DELETE' });
-        if (respuesta.status === 200) {
-            cargarLibros();
-        } else if (respuesta.status === 404) {
-            alert("Error 404: Libro no encontrado");
-        }
+        const cuerpo = await procesarRespuesta(respuesta);
+
+        mostrarMensaje(cuerpo.mensaje || mensajePorEstado(respuesta.status), 'success');
+        cargarLibros();
+    } catch (error) {
+        manejarError(error);
     }
 }
 
