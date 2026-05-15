@@ -1,0 +1,144 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: sans-serif;
+}
+
+body {
+    background-color: #b9bebd;
+    color: #333;
+    padding: 20px;
+}
+
+.main-header {
+    color: #027386;
+    letter-spacing: 1px;
+    margin: 20px;
+    text-align: center;
+    font-size: 25px;
+}
+
+
+.btn {
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.btn-add {
+    align-items: end;
+    gap: 15px;
+    padding: 10px;
+    background-color: rgb(212, 181, 7);
+}
+
+.btn-user {
+    justify-content: left;
+}
+
+.btn-new {
+    align-items: end;
+    padding: 10px;
+    background-color: rgb(85, 184, 19);
+}
+
+.dashboard-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.card {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    margin: 20px;
+}
+
+.formulario-group {
+    margin-bottom: 15px;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+input,
+seleccion {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.table-wrapper {
+    overflow-x: auto;
+    margin-top: 15px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th,
+td {
+    text-align: left;
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+}
+
+th {
+    background-color: #f8f9fa;
+}
+
+button {
+    cursor: pointer;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+.boton-primary {
+    background: #007bff;
+    color: white;
+}
+
+.boton-success {
+    background: #28a745;
+    color: white;
+    width: 100%;
+}
+
+.boton-borrar {
+    background: #dc3545;
+    color: white;
+}
+
+.boton-editar {
+    background: #ffc107;
+    color: #212529;
+    margin-right: 5px;
+}
+
+.hidden {
+    display: none;
+}
+
+@media (max-width: 600px) {
+    body {
+        padding: 10px;
+    }
+
+    .dashboard-container {
+        grid-template-columns: 1fr;
+    }
+}
