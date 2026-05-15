@@ -1,10 +1,20 @@
 const API_URL = 'http://localhost:3000/api/usuarios';
 const LIBROS_URL = 'http://localhost:3000/api/libros';
 
+async function procesarRespuesta(respuesta) {
+    const cuerpo = await respuesta.json();
+
+    if (!respuesta.ok) {
+        throw new Error(cuerpo.mensaje || 'Error en la peticion');
+    }
+
+    return cuerpo.data ?? cuerpo;
+}
+
 async function cargarUsuarios() {
     const tabla = document.getElementById('cuerpo-tabla-usuarios');
     if (!tabla) return;
-    const datos = await fetch(API_URL).then(r => r.json());
+    const datos = await fetch(API_URL).then(procesarRespuesta);
     tabla.innerHTML = datos.map(u => `
         <tr>
             <td>${u.nombre}</td>
@@ -57,12 +67,12 @@ if (usuarioFormulario) {
 async function cargarLibros() {
     const tabla = document.getElementById('tablas-libro');
     if (!tabla) return;
-    const libros = await fetch(LIBROS_URL).then(r => r.json());
+    const libros = await fetch(LIBROS_URL).then(procesarRespuesta);
     tabla.innerHTML = libros.map(lib => `
         <tr>
             <td>${lib.titulo}</td>
             <td>${lib.autor}</td>
-            <td>${lib.dueño || 'Sin asignar'}</td>
+            <td>${lib.dueno || 'Sin asignar'}</td>
             <td>
                 <button class="boton boton-editar" onclick="prepararEdicionLibro(${lib.id}, '${lib.titulo}', '${lib.autor}', ${lib.usuarioId})">Editar</button>
                 <button class="boton boton-borrar" onclick="eliminarLibro(${lib.id})">Eliminar</button>
@@ -89,7 +99,7 @@ function limpiarlibroFormulario() {
 async function actualizarSeleccionUsuarios() {
     const seleccion = document.getElementById('seleccion-usuario');
     if (!seleccion) return;
-    const usuarios = await fetch(API_URL).then(r => r.json());
+    const usuarios = await fetch(API_URL).then(procesarRespuesta);
     seleccion.innerHTML = '<option value="">Sin dueño</option>' +
         usuarios.map(u => `<option value="${u.id}">${u.nombre}</option>`).join('');
 }
