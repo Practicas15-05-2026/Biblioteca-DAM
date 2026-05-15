@@ -1,2 +1,4 @@
 node_modules/
 *.baseDatos
+Backend/uploads/*
+!Backend/uploads/.gitkeep
