@@ -19,7 +19,6 @@ body {
     font-size: 25px;
 }
 
-
 .btn {
     margin-bottom: 20px;
     display: flex;
@@ -50,14 +49,36 @@ body {
     gap: 20px;
     max-width: 1200px;
     margin: 0 auto;
+    text-align: center;
 }
 
 .card {
     background: white;
-    padding: 20px;
+    padding: 40px;
     border-radius: 8px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    margin: 20px;
+    margin: 40px;
+}
+
+.titulo {
+    text-align: center;
+}
+
+.columna span{
+    font-weight: bold;
+}
+
+.block {
+    margin-bottom: 20px; 
+    border: 1px solid #ccc;
+    font-size: 25px;
+}
+
+.columna {
+    display: block;
+    padding: 5px 0; 
+    text-align: center;
+    font-size: 18px;
 }
 
 .formulario-group {
@@ -88,15 +109,9 @@ table {
     border-collapse: collapse;
 }
 
-th,
-td {
-    text-align: left;
-    padding: 12px;
-    border-bottom: 1px solid #eee;
-}
-
-th {
-    background-color: #f8f9fa;
+.columna-boton {
+    text-align: end;
+    padding: 20px;
 }
 
 button {
@@ -131,6 +146,27 @@ button {
 
 .hidden {
     display: none;
+}
+
+.titulo-form {
+    text-align: center;
+    color: #5a097a;
+    font-size: 20px;
+    font-weight: bold;
+    padding: 20px;
+}
+
+.seleccion-usuario {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+.formulario-group {
+    padding: 20px;
 }
 
 @media (max-width: 600px) {
