@@ -11,11 +11,15 @@
 
 <body>
     <header class="main-header">
-        <h1>Registrar libros</h1>
+        <div style="text-align:right">
+            <button class="lang-btn" data-lang="es" onclick="setLang('es')">🇪🇸</button>
+            <button class="lang-btn" data-lang="en" onclick="setLang('en')">🇬🇧</button>
+        </div>
+        <h1 id="header-titulo"></h1>
     </header>
 
     <main>
-        <div class="btn">
+        <div class="contenedor-botones">
             <button onclick="window.location.href='index.html'">
                 <svg width="24px" height="24px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path fill-rule="evenodd" clip-rule="evenodd"
@@ -39,25 +43,24 @@
             </button>
         </div>
         <div class="dashboard-container">
-
             <section class="entity-section">
-                <div class="card">
+                <div class="tarjeta">
                     <div class="titulo-form">
-                        <h2 id="libro-titulo-formulario">Registrar Libro</h2>
+                        <h2 id="libro-titulo-formulario"></h2>
                     </div>
 
                     <form id="libro-formulario">
                         <input type="hidden" id="libro-id">
 
                         <div class="formulario-group">
-                            <input type="text" id="titulo" required placeholder="Titulo">
+                            <input type="text" id="titulo" required placeholder="">
                         </div>
                         <div class="formulario-group">
-                            <input type="text" id="autor" required placeholder="Autor">
+                            <input type="text" id="autor" required placeholder="">
                         </div>
                         <div class="formulario-group">
                             <select id="seleccion-usuario" class="seleccion-usuario">
-                                <option value="">Sin dueño</option>
+                                <option value=""></option>
                             </select>
                         </div>
                         <div class="formulario-group">
@@ -65,19 +68,27 @@
                         </div>
 
                         <div class="button-group">
-                            <button type="submit" id="boton-libro-enviar" class="boton-success">Guardar Libro</button>
+                            <button type="submit" id="boton-libro-enviar" class="boton-success"></button>
                             <button type="button" id="boton-libro-cancel" class="boton-secondary"
-                                onclick="limpiarlibroFormulario()">Cancelar</button>
+                                onclick="limpiarlibroFormulario()"></button>
                         </div>
                     </form>
                 </div>
-
             </section>
         </div>
-
     </main>
 
+    <script src="traducciones.js"></script>
     <script src="script.js"></script>
+    <script>
+        document.getElementById('header-titulo').textContent = trad('registrarLibro');
+        document.getElementById('libro-titulo-formulario').textContent = trad('registrarLibro');
+        document.getElementById('boton-libro-enviar').textContent = trad('guardarLibro');
+        document.getElementById('boton-libro-cancel').textContent = trad('cancelar');
+        document.getElementById('titulo').placeholder = trad('placeholderTitulo');
+        document.getElementById('autor').placeholder = trad('placeholderAutor');
+        marcarBandera();
+    </script>
 </body>
 
 </html>

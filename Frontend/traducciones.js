@@ -1,0 +1,85 @@
+const LANG = {
+    es: {
+        titulo: 'Biblioteca',
+        usuarios: 'Usuarios',
+        nuevoLibro: 'Nuevo Libro',
+        inventario: 'Inventario de Libros',
+        editar: 'Editar',
+        eliminar: 'Eliminar',
+        sinImagen: 'Sin imagen',
+        sinAsignar: 'Sin asignar',
+        sinDueno: 'Sin dueño',
+        autor: 'Autor',
+        dueno: 'Dueño',
+        confirmar: '¿Seguro?',
+        confirmarLibro: '¿Seguro de eliminar este libro?',
+        errorLibros: 'No se pudieron cargar los libros',
+        errorUsuarios: 'No se pudieron cargar los usuarios',
+        registrarLibro: 'Registrar Libro',
+        editarLibro: 'Editar Libro',
+        guardarLibro: 'Guardar Libro',
+        actualizarLibro: 'Actualizar Libro',
+        registrarUsuario: 'Registrar Usuario',
+        editarUsuario: 'Editar Usuario',
+        guardarUsuario: 'Guardar Usuario',
+        actualizar: 'Actualizar',
+        cancelar: 'Cancelar',
+        listaUsuarios: 'Lista de Usuarios',
+        añadirUsuario: 'Añadir usuario',
+        noCargaron: 'No se pudo cargar la información',
+        errorDatosInvalidos: 'La peticion contiene datos invalidos',
+        errorRecursoNoExiste: 'El recurso solicitado no existe',
+        operacionCorrecta: 'Operacion realizada correctamente',
+        errorInesperado: 'Ha ocurrido un error inesperado',
+        errorConexion: 'No se pudo conectar con el servidor',
+        placeholderTitulo: 'Titulo',
+        placeholderAutor: 'Autor',
+    },
+    en: {
+        titulo: 'Library',
+        usuarios: 'Users',
+        nuevoLibro: 'New Book',
+        inventario: 'Book Inventory',
+        editar: 'Edit',
+        eliminar: 'Delete',
+        sinImagen: 'No image',
+        sinAsignar: 'Not assigned',
+        sinDueno: 'No owner',
+        autor: 'Author',
+        dueno: 'Owner',
+        confirmar: 'Are you sure?',
+        confirmarLibro: 'Are you sure you want to delete this book?',
+        errorLibros: 'Could not load books',
+        errorUsuarios: 'Could not load users',
+        registrarLibro: 'Register Book',
+        editarLibro: 'Edit Book',
+        guardarLibro: 'Save Book',
+        actualizarLibro: 'Update Book',
+        registrarUsuario: 'Register User',
+        editarUsuario: 'Edit User',
+        guardarUsuario: 'Save User',
+        actualizar: 'Update',
+        cancelar: 'Cancel',
+        listaUsuarios: 'User List',
+        añadirUsuario: 'Add user',
+        noCargaron: 'Information could not be loaded',
+        errorDatosInvalidos: 'The request contains invalid data',
+        errorRecursoNoExiste: 'The requested resource does not exist',
+        operacionCorrecta: 'Operation completed successfully',
+        errorInesperado: 'An unexpected error occurred',
+        errorConexion: 'Could not connect to the server',
+        placeholderTitulo: 'Title',
+        placeholderAutor: 'Author',
+    }
+};
+
+function getLang() { return localStorage.getItem('lang') || 'es'; }
+function setLang(lang) { localStorage.setItem('lang', lang); location.reload(); }
+
+function trad(clave) { return LANG[getLang()][clave] || clave; }
+
+function marcarBandera() {
+    document.querySelectorAll('.lang-btn').forEach(btn =>
+        btn.style.opacity = btn.dataset.lang === getLang() ? '1' : '0.4'
+    );
+}

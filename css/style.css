@@ -1,7 +1,5 @@
 * {
     box-sizing: border-box;
-    margin: 0;
-    padding: 0;
     font-family: sans-serif;
 }
 
@@ -19,7 +17,24 @@ body {
     font-size: 25px;
 }
 
-.btn {
+.lang-btn {
+    background: transparent;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 5px;
+    width: 40px;
+    height: 40px;
+}
+
+.main-header h1 {
+    font-size: 2rem;
+    margin: 0;
+    color: #027386;
+    font-weight: bold;
+}
+
+.contenedor-botones {
     margin-bottom: 20px;
     display: flex;
     justify-content: flex-end;
@@ -39,6 +54,7 @@ body {
 
 .btn-new {
     align-items: end;
+    gap: 15px;
     padding: 10px;
     background-color: rgb(85, 184, 19);
 }
@@ -52,7 +68,7 @@ body {
     text-align: center;
 }
 
-.card {
+.tarjeta {
     background: white;
     padding: 40px;
     border-radius: 8px;
@@ -155,15 +171,27 @@ button {
     font-weight: bold;
 }
 
+.button-group {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
 .boton-primary {
     background: #007bff;
     color: white;
+    width: 90%;
 }
 
 .boton-success {
     background: #28a745;
     color: white;
-    width: 100%;
+    width: 90%;
+}
+.boton-secondary {
+    width: 90%;
+    color: #212529;
+    background: transparent;
 }
 
 .boton-borrar {
@@ -175,6 +203,12 @@ button {
     background: #ffc107;
     color: #212529;
     margin-right: 5px;
+}
+
+button:focus,
+button:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
 }
 
 .hidden {

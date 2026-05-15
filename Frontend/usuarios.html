@@ -11,11 +11,15 @@
 
 <body>
     <header class="main-header">
-        <h1>Usuarios</h1>
+        <div style="text-align:right">
+            <button class="lang-btn" data-lang="es" onclick="setLang('es')">🇪🇸</button>
+            <button class="lang-btn" data-lang="en" onclick="setLang('en')">🇬🇧</button>
+        </div>
+        <h1 id="header-titulo"></h1>
     </header>
 
     <main>
-        <div class="btn">
+        <div class="contenedor-botones">
             <button onclick="window.location.href='index.html'">
                 <svg width="24px" height="24px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path fill-rule="evenodd" clip-rule="evenodd"
@@ -39,26 +43,32 @@
             </button>
         </div>
         <div class="dashboard-container">
-            <div class="card">
-                <h2 id="titulo-formulario">Registrar Usuario</h2>
+            <div class="tarjeta">
+                <h2 id="titulo-formulario"></h2>
                 <form id="usuario-formulario">
                     <input type="hidden" id="usuario-id">
                     <div class="formulario-group">
                         <input type="text" id="nombre" placeholder="Ej. Juan Pérez" required>
                     </div>
                     <div class="button-group">
-                        <button type="submit" id="boton-enviar" class="boton-primary">Guardar Usuario</button>
-                        <button type="button" id="boton-cancel" class="boton-secondary hidden"
-                            onclick="limpiarformulario()">Cancelar</button>
+                        <button type="submit" id="boton-enviar" class="boton-primary"></button>
+                        <button type="button" id="boton-cancel" class="boton-secondary"
+                            onclick="limpiarformulario()"></button>
                     </div>
                 </form>
             </div>
         </div>
-
-
     </main>
 
+    <script src="traducciones.js"></script>
     <script src="script.js"></script>
+    <script>
+        document.getElementById('header-titulo').textContent = trad('usuarios');
+        document.getElementById('titulo-formulario').textContent = trad('registrarUsuario');
+        document.getElementById('boton-enviar').textContent = trad('guardarUsuario');
+        document.getElementById('boton-cancel').textContent = trad('cancelar');
+        marcarBandera();
+    </script>
 </body>
 
 </html>
