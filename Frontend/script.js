@@ -12,19 +12,29 @@ async function procesarRespuesta(respuesta) {
 }
 
 async function cargarUsuarios() {
-    const respuesta = await fetch(API_URL);
-    const datos = await respuesta.json();
     const tabla = document.getElementById('cuerpo-tabla-usuarios');
     if (!tabla) return;
-    const datos = await fetch(API_URL).then(procesarRespuesta);
-    tabla.innerHTML = datos.map(u => `
-        <tr>
-            <td class="columna">${u.nombre}</td>
-            <td class="columna-boton">
-                <button class="boton boton-editar" onclick="prepararEdicion(${u.id}, '${u.nombre}')">Editar</button>
-                <button class="boton boton-borrar" onclick="eliminar(${u.id})">Eliminar</button>
-            </td>
-        </tr>`).join('');
+
+    try {
+        const usuarios = await fetch(API_URL).then(procesarRespuesta);
+
+        tabla.innerHTML = usuarios.map(usuario => `
+            <tr>
+                <td class="columna">${usuario.nombre}</td>
+                <td class="columna-boton">
+                    <button class="boton boton-editar" onclick="window.location.href='usuarios.html?id=${usuario.id}&nombre=${encodeURIComponent(usuario.nombre)}'">Editar</button>
+                    <button class="boton boton-borrar" onclick="eliminar(${usuario.id})">Eliminar</button>
+                </td>
+            </tr>
+        `).join('');
+    } catch (error) {
+        console.error('Error al cargar usuarios:', error);
+        tabla.innerHTML = `
+            <tr>
+                <td class="columna" colspan="2">No se pudieron cargar los usuarios</td>
+            </tr>
+        `;
+    }
 }
 
 function prepararEdicion(id, nombre) {
@@ -95,7 +105,7 @@ async function cargarLibros() {
     try {
         const respuesta = await fetch(LIBROS_URL);
         if (respuesta.status === 200) {
-            const libros = await respuesta.json();
+            const libros = await procesarRespuesta(respuesta);
             const tabla = document.getElementById('tablas-libro');
             if (tabla) {
                 tabla.innerHTML = '';
@@ -104,7 +114,7 @@ async function cargarLibros() {
                     <tr class="block">
                         <td class="columna titulo">Titulo : <span>${lib.titulo}</span></td>
                         <td class="columna">Autor : ${lib.autor}</td>
-                        <td class="columna">Dueño : ${lib.dueño || 'Sin asignar'}</td>
+                        <td class="columna">Dueño : ${lib.dueno || 'Sin asignar'}</td>
                         <div class="columna-boton">
                             <button class="boton boton-editar " 
                                 onclick="window.location.href='registrar-libros.html?id=${lib.id}&titulo=${lib.titulo}&autor=${lib.autor}&usuarioId=${lib.usuarioId}'">
@@ -148,8 +158,7 @@ function limpiarlibroFormulario() {
 
 async function actualizarSeleccionUsuarios() {
     try {
-        const respuesta = await fetch(API_URL);
-        const usuarios = await respuesta.json();
+        const usuarios = await fetch(API_URL).then(procesarRespuesta);
         const seleccion = document.getElementById('seleccion-usuario');
         if (!seleccion) return;
 
