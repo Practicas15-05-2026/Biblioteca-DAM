@@ -15,64 +15,18 @@
     </header>
 
     <main>
+        <div class="btn">
+            <button class="btn-user" onclick="window.location.href='usuarios-list.html'">
+                Usuarios
+            </button>
+        </div>
+        <div class="btn">
+            <button class="btn-new" onclick="window.location.href='registrar-libros.html'">
+                Nuevo Libro
+            </button>
+        </div>
         <div class="dashboard-container">
             <section class="entity-section">
-                <div class="card">
-                    <h2 id="titulo-formulario">Registrar Usuario</h2>
-                    <form id="usuario-formulario">
-                        <input type="hidden" id="usuario-id">
-                        <div class="formulario-group">
-                            <label for="nombre">Nombre completo</label>
-                            <input type="text" id="nombre" placeholder="Ej. Juan Pérez" required>
-                        </div>
-                        <div class="button-group">
-                            <button type="submit" id="boton-enviar" class="boton-primary">Guardar Usuario</button>
-                            <button type="button" id="boton-cancel" class="boton-secondary hidden"
-                                onclick="limpiarformulario()">Cancelar</button>
-                        </div>
-                    </form>
-                </div>
-
-                <div class="card">
-                    <h2>Lista de Usuarios</h2>
-                    <div class="table-wrapper">
-                        <table>
-                            <tbody id="cuerpo-tabla-usuarios">
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-
-            <section class="entity-section">
-                <div class="card">
-                    <h2 id="libro-titulo-formulario">Registrar Libro</h2>
-                    <form id="libro-formulario">
-                        <input type="hidden" id="libro-id">
-
-                        <div class="formulario-group">
-                            <label for="titulo">Título</label>
-                            <input type="text" id="titulo" required>
-                        </div>
-                        <div class="formulario-group">
-                            <label for="autor">Autor</label>
-                            <input type="text" id="autor" required>
-                        </div>
-                        <div class="formulario-group">
-                            <label for="seleccion-usuario">Asignar Dueño (Relación)</label>
-                            <select id="seleccion-usuario">
-                                <option value="">Sin dueño</option>
-                            </select>
-                        </div>
-
-                        <div class="button-group">
-                            <button type="submit" id="boton-libro-enviar" class="boton-success">Guardar Libro</button>
-                            <button type="button" id="boton-libro-cancel" class="boton-secondary"
-                                onclick="limpiarlibroFormulario()">Cancelar</button>
-                        </div>
-                    </form>
-                </div>
-
                 <div class="card">
                     <h2>Inventario de Libros</h2>
                     <div class="table-wrapper">
