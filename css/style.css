@@ -28,7 +28,7 @@ body {
 }
 
 .main-header h1 {
-    font-size: 2rem;
+    font-size: 30px;
     margin: 0;
     color: #027386;
     font-weight: bold;
@@ -106,12 +106,6 @@ body {
 
 .columna span{
     font-weight: bold;
-}
-
-.block {
-    margin-bottom: 20px; 
-    border: 1px solid #ccc;
-    font-size: 25px;
 }
 
 .columna {
@@ -244,4 +238,50 @@ button:focus-visible {
     .dashboard-container {
         grid-template-columns: 1fr;
     }
+
+    .main-header {
+        font-size: 14px;
+    }
+
+    .main-header h1 {
+        font-size: 27px;
+    }
+
+    .columna {
+        font-size: 15px;
+    }
+
+    button {
+        padding: 8px;
+        font-size: 11px;
+    }
+
+    .titulo-form {
+        font-size: 15px;
+    }
+
+    .lang-btn {
+        font-size: 16px;
+    }
+
+    #titulo-lista {
+        font-size: 16px;
+    }
+
+    #titulo-formulario {
+        font-size: 20px;
+    }
+
+    svg {
+        width: 16px;
+        height: 16px;
+    }
+
+}
+
+@media (max-width: 800px) {
+    .img-fluid {
+    max-width: 40%;
+    }
+
 }
