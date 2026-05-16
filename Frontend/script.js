@@ -1,5 +1,15 @@
 const API_URL = 'http://localhost:3000/api/usuarios';
 const LIBROS_URL = 'http://localhost:3000/api/libros';
+const PAGINA_404 = 'error404.html';
+const PAGINA_201 = 'success201.html';
+
+function redirigir404() {
+    window.location.href = PAGINA_404;
+}
+
+function redirigir201() {
+    window.location.href = PAGINA_201;
+}
 
 function mensajePorEstado(status) {
     if (status === 400) return trad('errorDatosInvalidos');
@@ -36,7 +46,7 @@ function manejarError(error) {
     }
 
     if (error.status === 404) {
-        mostrarMensaje(error.message, 'warning');
+        redirigir404();
         return;
     }
 
@@ -104,19 +114,31 @@ async function cargarUsuarios() {
     }
 }
 
-function prepararEdicion(id, nombre) {
-    if (!id || !nombre) {
+async function prepararEdicion(id) {
+    if (!id) {
         const params = new URLSearchParams(window.location.search);
         id = params.get('id');
-        nombre = params.get('nombre');
     }
 
-    if (!id || !nombre) return;
+    if (!id) return;
 
-    document.getElementById('usuario-id').value = id;
-    document.getElementById('nombre').value = nombre;
-    document.getElementById('titulo-formulario').innerText = trad('editarUsuario');
-    document.getElementById('boton-enviar').innerText = trad('actualizar');
+    try {
+        const cuerpo = await fetch(API_URL).then(procesarRespuesta);
+        const usuarios = obtenerDatos(cuerpo);
+        const usuario = usuarios.find(usuario => String(usuario.id) === String(id));
+
+        if (!usuario) {
+            redirigir404();
+            return;
+        }
+
+        document.getElementById('usuario-id').value = usuario.id;
+        document.getElementById('nombre').value = usuario.nombre;
+        document.getElementById('titulo-formulario').innerText = trad('editarUsuario');
+        document.getElementById('boton-enviar').innerText = trad('actualizar');
+    } catch (error) {
+        manejarError(error);
+    }
 }
 
 function limpiarformulario() {
@@ -144,6 +166,11 @@ if (usuarioFormulario) {
             });
             const cuerpo = await procesarRespuesta(respuesta);
 
+            if (respuesta.status === 201) {
+                redirigir201();
+                return;
+            }
+
             mostrarMensaje(cuerpo.mensaje || mensajePorEstado(respuesta.status), 'success');
             limpiarformulario();
             cargarUsuarios();
@@ -165,6 +192,7 @@ async function eliminar(id) {
         cargarUsuarios();
         actualizarSeleccionUsuarios();
     } catch (error) {
+
         manejarError(error);
     }
 }
@@ -213,7 +241,7 @@ async function cargarLibros() {
     }
 }
 
-function prepararEdicionLibro(id, titulo, autor, usuarioId) {
+async function prepararEdicionLibro(id, titulo, autor, usuarioId) {
     if (!id) {
         const params = new URLSearchParams(window.location.search);
         id = params.get('id');
@@ -222,14 +250,32 @@ function prepararEdicionLibro(id, titulo, autor, usuarioId) {
         usuarioId = params.get('usuarioId');
     }
 
-    if (!id) return;
+    if (!id) {
+        await actualizarSeleccionUsuarios();
+        return;
+    }
 
-    document.getElementById('libro-id').value = id;
-    document.getElementById('titulo').value = titulo;
-    document.getElementById('autor').value = autor;
-    document.getElementById('seleccion-usuario').value = usuarioId || '';
-    document.getElementById('libro-titulo-formulario').innerText = trad('editarLibro');
-    document.getElementById('boton-libro-enviar').innerText = trad('actualizarLibro');
+    try {
+        const cuerpo = await fetch(LIBROS_URL).then(procesarRespuesta);
+        const libros = obtenerDatos(cuerpo);
+        const libro = libros.find(libro => String(libro.id) === String(id));
+
+        if (!libro) {
+            redirigir404();
+            return;
+        }
+
+        await actualizarSeleccionUsuarios();
+
+        document.getElementById('libro-id').value = libro.id;
+        document.getElementById('titulo').value = libro.titulo || titulo;
+        document.getElementById('autor').value = libro.autor || autor;
+        document.getElementById('seleccion-usuario').value = libro.usuarioId || usuarioId || '';
+        document.getElementById('libro-titulo-formulario').innerText = trad('editarLibro');
+        document.getElementById('boton-libro-enviar').innerText = trad('actualizarLibro');
+    } catch (error) {
+        manejarError(error);
+    }
 }
 
 function limpiarlibroFormulario() {
@@ -281,6 +327,11 @@ if (libroFormulario) {
             });
             const cuerpo = await procesarRespuesta(respuesta);
 
+            if (respuesta.status === 201) {
+                redirigir201();
+                return;
+            }
+
             mostrarMensaje(cuerpo.mensaje || mensajePorEstado(respuesta.status), 'success');
             limpiarlibroFormulario();
             cargarLibros();
@@ -306,6 +357,6 @@ async function eliminarLibro(id) {
 
 if (document.getElementById('cuerpo-tabla-usuarios')) cargarUsuarios();
 if (document.getElementById('tablas-libro')) cargarLibros();
-if (document.getElementById('seleccion-usuario')) actualizarSeleccionUsuarios();
+if (document.getElementById('seleccion-usuario') && !document.getElementById('libro-formulario')) actualizarSeleccionUsuarios();
 if (document.getElementById('libro-formulario')) prepararEdicionLibro();
 if (document.getElementById('usuario-formulario')) prepararEdicion();
