@@ -2,10 +2,10 @@ const API_URL = 'http://localhost:3000/api/usuarios';
 const LIBROS_URL = 'http://localhost:3000/api/libros';
 
 function mensajePorEstado(status) {
-    if (status === 400) return 'La peticion contiene datos invalidos';
-    if (status === 404) return 'El recurso solicitado no existe';
-    if (status >= 200 && status < 300) return 'Operacion realizada correctamente';
-    return 'Ha ocurrido un error inesperado';
+    if (status === 400) return trad('errorDatosInvalidos');
+    if (status === 404) return trad('errorRecursoNoExiste');
+    if (status >= 200 && status < 300) return trad('operacionCorrecta');
+    return trad('errorInesperado');
 }
 
 function mostrarMensaje(mensaje, tipo = 'info') {
@@ -40,7 +40,7 @@ function manejarError(error) {
         return;
     }
 
-    mostrarMensaje('No se pudo conectar con el servidor', 'error');
+    mostrarMensaje(trad('errorConexion'), 'error');
 }
 
 async function procesarRespuesta(respuesta) {
@@ -89,8 +89,8 @@ async function cargarUsuarios() {
             <tr>
                 <td class="columna">${textoSeguro(usuario.nombre)}</td>
                 <td class="columna-boton">
-                    <button class="boton boton-editar" onclick="window.location.href='usuarios.html?id=${usuario.id}&nombre=${encodeURIComponent(usuario.nombre)}'">Editar</button>
-                    <button class="boton boton-borrar" onclick="eliminar(${usuario.id})">Eliminar</button>
+                    <button class="boton boton-editar" onclick="window.location.href='usuarios.html?id=${usuario.id}&nombre=${encodeURIComponent(usuario.nombre)}'">${trad('editar')}</button>
+                    <button class="boton boton-borrar" onclick="eliminar(${usuario.id})">${trad('eliminar')}</button>
                 </td>
             </tr>
         `).join('');
@@ -98,7 +98,7 @@ async function cargarUsuarios() {
         manejarError(error);
         tabla.innerHTML = `
             <tr>
-                <td class="columna" colspan="2">No se pudieron cargar los usuarios</td>
+                <td class="columna" colspan="2">${trad('errorUsuarios')}</td>
             </tr>
         `;
     }
@@ -115,15 +115,14 @@ function prepararEdicion(id, nombre) {
 
     document.getElementById('usuario-id').value = id;
     document.getElementById('nombre').value = nombre;
-    document.getElementById('titulo-formulario').innerText = 'Editar Usuario';
-    document.getElementById('boton-enviar').innerText = 'Actualizar';
+    document.getElementById('titulo-formulario').innerText = trad('editarUsuario');
+    document.getElementById('boton-enviar').innerText = trad('actualizar');
 }
 
 function limpiarformulario() {
     document.getElementById('usuario-id').value = '';
     document.getElementById('nombre').value = '';
-    document.getElementById('titulo-formulario').innerText = 'Registrar Usuario';
-    document.getElementById('boton-enviar').innerText = 'Guardar Usuario';
+    window.location.href = 'usuarios-list.html'
 }
 
 const usuarioFormulario = document.getElementById('usuario-formulario');
@@ -156,7 +155,7 @@ if (usuarioFormulario) {
 }
 
 async function eliminar(id) {
-    if (!confirm('Seguro?')) return;
+    if (!confirm(trad('confirmar'))) return;
 
     try {
         const respuesta = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
@@ -179,24 +178,36 @@ async function cargarLibros() {
         const libros = obtenerDatos(cuerpo);
 
         tabla.innerHTML = libros.map(libro => `
-            <tr class="block">
-                <td class="columna">
-                    ${libro.imagen ? `<img class="imagen-libro" src="${textoSeguro(libro.imagen)}" alt="${textoSeguro(libro.titulo)}">` : 'Sin imagen'}
-                </td>
-                <td class="columna titulo">Titulo: <span>${textoSeguro(libro.titulo)}</span></td>
-                <td class="columna">Autor: ${textoSeguro(libro.autor)}</td>
-                <td class="columna">Dueno: ${textoSeguro(libro.dueno || 'Sin asignar')}</td>
-                <td class="columna-boton">
-                    <button class="boton boton-editar" onclick="window.location.href='registrar-libros.html?id=${libro.id}&titulo=${encodeURIComponent(libro.titulo)}&autor=${encodeURIComponent(libro.autor)}&usuarioId=${libro.usuarioId || ''}'">Editar</button>
-                    <button class="boton boton-borrar" onclick="eliminarLibro(${libro.id})">Eliminar</button>
-                </td>
-            </tr>
+            <div class="card mb-3" style="max-width: 540px;">
+                <div class="row g-0">
+                    <div class="col-md-4">
+                        ${libro.imagen
+                            ? `<img src="${textoSeguro(libro.imagen)}" class="img-fluid rounded-start" alt="${textoSeguro(libro.titulo)}">`
+                            : `<span>${trad('sinImagen')}</span>`
+                        }
+                    </div>
+                    <div class="col-md-8">
+                        <div class="card-body">
+                            <h5 class="card-title">${textoSeguro(libro.titulo)}</h5>
+                            <p class="card-text">${trad('autor')} : ${textoSeguro(libro.autor)}</p>
+                            <p class="card-text"><small class="text-body-secondary">${trad('dueno')} : ${textoSeguro(libro.dueno || trad('sinAsignar'))}</small></p>
+                            <div>
+                                <button class="boton boton-editar"
+                                    onclick="window.location.href='registrar-libros.html?id=${libro.id}&titulo=${encodeURIComponent(libro.titulo)}&autor=${encodeURIComponent(libro.autor)}&usuarioId=${libro.usuarioId || ''}'">
+                                    ${trad('editar')}
+                                </button>
+                                <button class="boton boton-borrar" onclick="eliminarLibro(${libro.id})">${trad('eliminar')}</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         `).join('');
     } catch (error) {
         manejarError(error);
         tabla.innerHTML = `
             <tr>
-                <td class="columna" colspan="5">No se pudieron cargar los libros</td>
+                <td class="columna" colspan="5">${trad('errorLibros')}</td>
             </tr>
         `;
     }
@@ -217,15 +228,14 @@ function prepararEdicionLibro(id, titulo, autor, usuarioId) {
     document.getElementById('titulo').value = titulo;
     document.getElementById('autor').value = autor;
     document.getElementById('seleccion-usuario').value = usuarioId || '';
-    document.getElementById('libro-titulo-formulario').innerText = 'Editar Libro';
-    document.getElementById('boton-libro-enviar').innerText = 'Actualizar Libro';
+    document.getElementById('libro-titulo-formulario').innerText = trad('editarLibro');
+    document.getElementById('boton-libro-enviar').innerText = trad('actualizarLibro');
 }
 
 function limpiarlibroFormulario() {
     document.getElementById('libro-id').value = '';
     document.getElementById('libro-formulario').reset();
-    document.getElementById('libro-titulo-formulario').innerText = 'Registrar Libro';
-    document.getElementById('boton-libro-enviar').innerText = 'Guardar Libro';
+    window.location.href = 'index.html'
 }
 
 async function actualizarSeleccionUsuarios() {
@@ -236,7 +246,7 @@ async function actualizarSeleccionUsuarios() {
         const cuerpo = await fetch(API_URL).then(procesarRespuesta);
         const usuarios = obtenerDatos(cuerpo);
 
-        seleccion.innerHTML = '<option value="">Sin dueno</option>' +
+        seleccion.innerHTML = `<option value="">${trad('sinDueno')}</option>` +
             usuarios.map(usuario => `<option value="${usuario.id}">${textoSeguro(usuario.nombre)}</option>`).join('');
     } catch (error) {
         manejarError(error);
@@ -281,7 +291,7 @@ if (libroFormulario) {
 }
 
 async function eliminarLibro(id) {
-    if (!confirm('Seguro de eliminar este libro?')) return;
+    if (!confirm(trad('confirmarLibro'))) return;
 
     try {
         const respuesta = await fetch(`${LIBROS_URL}/${id}`, { method: 'DELETE' });

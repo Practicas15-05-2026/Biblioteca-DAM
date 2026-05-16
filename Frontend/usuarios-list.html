@@ -12,14 +12,16 @@
 <body>
 
     <header class="main-header">
-        <h1>Usuarios</h1>
+        <div style="text-align:right">
+            <button class="lang-btn" data-lang="es" onclick="setLang('es')">🇪🇸</button>
+            <button class="lang-btn" data-lang="en" onclick="setLang('en')">🇬🇧</button>
+        </div>
+        <h1 id="header-titulo"></h1>
     </header>
 
     <main>
-        <div class="btn">
-            <button class="btn-new" onclick="window.location.href='usuarios.html'">
-                Añadir usuario
-            </button>
+        <div class="contenedor-botones">
+            <button class="btn-new" id="btn-añadir" onclick="window.location.href='usuarios.html'"></button>
             <button onclick="window.location.href='index.html'">
                 <svg width="24px" height="24px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path fill-rule="evenodd" clip-rule="evenodd"
@@ -43,22 +45,23 @@
             </button>
         </div>
         <div class="dashboard-container">
-
-            <div class="card">
-                <h2>Lista de Usuarios</h2>
+            <div class="tarjeta">
+                <h2 id="titulo-lista"></h2>
                 <div class="table-wrapper">
-                    <table>
-                        <tbody id="cuerpo-tabla-usuarios">
-                        </tbody>
-                    </table>
+                    <div id="cuerpo-tabla-usuarios"></div>
                 </div>
             </div>
-            </section>
         </div>
-
     </main>
 
+    <script src="traducciones.js"></script>
     <script src="script.js"></script>
+    <script>
+        document.getElementById('header-titulo').textContent = trad('usuarios');
+        document.getElementById('btn-añadir').textContent = trad('añadirUsuario');
+        document.getElementById('titulo-lista').textContent = trad('listaUsuarios');
+        marcarBandera();
+    </script>
 </body>
 
 </html>
