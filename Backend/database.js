@@ -4,8 +4,36 @@ const baseDatos = new sqlite3.Database('./proyecto.baseDatos');
 baseDatos.serialize(() => {
     baseDatos.run(`CREATE TABLE IF NOT EXISTS usuarios (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        nombre TEXT NOT NULL
+        nombre TEXT NOT NULL,
+        apellido TEXT NOT NULL,
+        Dni TEXT NOT NULL,
+        email TEXT NOT NULL,
+        telefono TEXT
     )`);
+
+    baseDatos.run(`ALTER TABLE usuarios ADD COLUMN apellido TEXT`, (error) => {
+        if (error && !error.message.includes('duplicate column name')) {
+            console.error(error.message);
+        }
+    });
+
+    baseDatos.run(`ALTER TABLE usuarios ADD COLUMN Dni TEXT`, (error) => {
+        if (error && !error.message.includes('duplicate column name')) {
+            console.error(error.message);
+        }
+    });
+
+    baseDatos.run(`ALTER TABLE usuarios ADD COLUMN email TEXT`, (error) => {
+        if (error && !error.message.includes('duplicate column name')) {
+            console.error(error.message);
+        }
+    });
+
+    baseDatos.run(`ALTER TABLE usuarios ADD COLUMN telefono TEXT`, (error) => {
+        if (error && !error.message.includes('duplicate column name')) {
+            console.error(error.message);
+        }
+    });
 
     baseDatos.run(`CREATE TABLE IF NOT EXISTS libros (
         id INTEGER PRIMARY KEY AUTOINCREMENT,

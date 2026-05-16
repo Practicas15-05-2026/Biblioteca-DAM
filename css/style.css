@@ -73,7 +73,9 @@ body {
     padding: 40px;
     border-radius: 8px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    margin: 40px;
+    margin: 40px auto;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .mensaje-estado {
@@ -104,15 +106,30 @@ body {
     text-align: center;
 }
 
-.columna span{
+.table-wrapper table {
+    min-width: 800px;
+}
+
+.table-wrapper th,
+.table-wrapper td {
+    padding: 12px 10px;
+    border-bottom: 1px solid #e0e0e0;
+    vertical-align: middle;
+}
+
+.table-wrapper th {
+    text-align: center;
+    font-weight: 600;
+}
+
+.columna span {
     font-weight: bold;
 }
 
 .columna {
-    display: block;
-    padding: 5px 0; 
+    padding: 12px 10px;
     text-align: center;
-    font-size: 18px;
+    font-size: 16px;
 }
 
 .imagen-libro {
@@ -153,8 +170,9 @@ table {
 }
 
 .columna-boton {
-    text-align: end;
-    padding: 20px;
+    text-align: right;
+    padding: 12px 10px;
+    width: 180px;
 }
 
 button {
@@ -182,6 +200,7 @@ button {
     color: white;
     width: 90%;
 }
+
 .boton-secondary {
     width: 90%;
     color: #212529;
@@ -236,7 +255,7 @@ button:focus-visible {
     }
 
     .dashboard-container {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     }
 
     .main-header {
@@ -281,7 +300,12 @@ button:focus-visible {
 
 @media (max-width: 800px) {
     .img-fluid {
-    max-width: 40%;
+        max-width: 40%;
+    }
+
+    .tarjeta {
+        padding: 20px;
+        margin: 20px auto ;
     }
 
 }

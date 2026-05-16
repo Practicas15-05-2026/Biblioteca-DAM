@@ -1,14 +1,13 @@
 const API_URL = 'http://localhost:3000/api/usuarios';
 const LIBROS_URL = 'http://localhost:3000/api/libros';
 const PAGINA_404 = 'error404.html';
-const PAGINA_201 = 'success201.html';
 
 function redirigir404() {
     window.location.href = PAGINA_404;
 }
 
 function redirigir201() {
-    window.location.href = PAGINA_201;
+    window.location.href = 'index.html';
 }
 
 function mensajePorEstado(status) {
@@ -98,8 +97,12 @@ async function cargarUsuarios() {
         tabla.innerHTML = usuarios.map(usuario => `
             <tr>
                 <td class="columna">${textoSeguro(usuario.nombre)}</td>
+                <td class="columna">${textoSeguro(usuario.apellido)}</td>
+                <td class="columna">${textoSeguro(usuario.dni)}</td>
+                <td class="columna">${textoSeguro(usuario.email)}</td>
+                <td class="columna">${textoSeguro(usuario.telefono)}</td>
                 <td class="columna-boton">
-                    <button class="boton boton-editar" onclick="window.location.href='usuarios.html?id=${usuario.id}&nombre=${encodeURIComponent(usuario.nombre)}'">${trad('editar')}</button>
+                    <button class="boton boton-editar" onclick="window.location.href='usuarios.html?id=${usuario.id}'">${trad('editar')}</button>
                     <button class="boton boton-borrar" onclick="eliminar(${usuario.id})">${trad('eliminar')}</button>
                 </td>
             </tr>
@@ -108,7 +111,7 @@ async function cargarUsuarios() {
         manejarError(error);
         tabla.innerHTML = `
             <tr>
-                <td class="columna" colspan="2">${trad('errorUsuarios')}</td>
+                <td class="columna" colspan="6">${trad('errorUsuarios')}</td>
             </tr>
         `;
     }
@@ -134,6 +137,10 @@ async function prepararEdicion(id) {
 
         document.getElementById('usuario-id').value = usuario.id;
         document.getElementById('nombre').value = usuario.nombre;
+        document.getElementById('apellido').value = usuario.apellido || '';
+        document.getElementById('dni').value = usuario.dni || '';
+        document.getElementById('email').value = usuario.email || '';
+        document.getElementById('telefono').value = usuario.telefono || '';
         document.getElementById('titulo-formulario').innerText = trad('editarUsuario');
         document.getElementById('boton-enviar').innerText = trad('actualizar');
     } catch (error) {
@@ -144,6 +151,10 @@ async function prepararEdicion(id) {
 function limpiarformulario() {
     document.getElementById('usuario-id').value = '';
     document.getElementById('nombre').value = '';
+    document.getElementById('apellido').value = '';
+    document.getElementById('dni').value = '';
+    document.getElementById('email').value = '';
+    document.getElementById('telefono').value = '';
     window.location.href = 'usuarios-list.html'
 }
 
@@ -155,6 +166,10 @@ if (usuarioFormulario) {
 
         const id = document.getElementById('usuario-id').value;
         const nombre = document.getElementById('nombre').value;
+        const apellido = document.getElementById('apellido').value;
+        const dni = document.getElementById('dni').value;
+        const email = document.getElementById('email').value;
+        const telefono = document.getElementById('telefono').value;
         const metodo = id ? 'PUT' : 'POST';
         const url = id ? `${API_URL}/${id}` : API_URL;
 
@@ -162,7 +177,7 @@ if (usuarioFormulario) {
             const respuesta = await fetch(url, {
                 method: metodo,
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ nombre })
+                body: JSON.stringify({ nombre, apellido, dni, email, telefono })
             });
             const cuerpo = await procesarRespuesta(respuesta);
 

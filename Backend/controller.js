@@ -2,7 +2,7 @@ const baseDatos = require('./database');
 const respuestas = require('./responses');
 
 exports.obtenerUsuarios = (peticion, respuesta) => {
-    baseDatos.all('SELECT * FROM usuarios', [], function(error, filas) {
+    baseDatos.all('SELECT id, nombre, apellido, Dni AS dni, email, telefono FROM usuarios', [], function(error, filas) {
         if (error) {
             return respuestas.badRequest(
                 respuesta,
@@ -20,39 +20,52 @@ exports.obtenerUsuarios = (peticion, respuesta) => {
 };
 
 exports.crearUsuarios = (peticion, respuesta) => {
-    const { nombre } = peticion.body;
+    const { nombre, apellido, dni, email, telefono } = peticion.body;
+    const telefonoNormalizado = telefono && telefono.trim() !== '' ? telefono.trim() : null;
 
-    baseDatos.run('INSERT INTO usuarios (nombre) VALUES (?)', [nombre], function(error) {
-        if (error) {
-            return respuestas.badRequest(
-                respuesta,
-                'No se pudo crear el usuario',
-                error.message
-            );
-        }
-
-        return respuestas.created(
-            respuesta,
-            { id: this.lastID, nombre },
-            'Usuario creado correctamente'
-        );
-    });
-};
-
-exports.actualizarUsuario = (peticion, respuesta) => {
-    const { nombre } = peticion.body;
-    const { id } = peticion.params;
-
-    if (!nombre || nombre.trim() === '') {
+    if (!nombre || nombre.trim() === '' || !apellido || apellido.trim() === '' || !dni || dni.trim() === '' || !email || email.trim() === '') {
         return respuestas.badRequest(
             respuesta,
-            'El nombre del usuario es obligatorio'
+            'Los datos del usuario son incompletos'
         );
     }
 
     baseDatos.run(
-        'UPDATE usuarios SET nombre = ? WHERE id = ?',
-        [nombre.trim(), id],
+        'INSERT INTO usuarios (nombre, apellido, Dni, email, telefono) VALUES (?, ?, ?, ?, ?)',
+        [nombre.trim(), apellido.trim(), dni.trim(), email.trim(), telefonoNormalizado],
+        function(error) {
+            if (error) {
+                return respuestas.badRequest(
+                    respuesta,
+                    'No se pudo crear el usuario',
+                    error.message
+                );
+            }
+
+            return respuestas.created(
+                respuesta,
+                { id: this.lastID, nombre: nombre.trim(), apellido: apellido.trim(), dni: dni.trim(), email: email.trim(), telefono: telefonoNormalizado },
+                'Usuario creado correctamente'
+            );
+        }
+    );
+};
+
+exports.actualizarUsuario = (peticion, respuesta) => {
+    const { nombre, apellido, dni, email, telefono } = peticion.body;
+    const { id } = peticion.params;
+    const telefonoNormalizado = telefono && telefono.trim() !== '' ? telefono.trim() : null;
+
+    if (!nombre || nombre.trim() === '' || !apellido || apellido.trim() === '' || !dni || dni.trim() === '' || !email || email.trim() === '') {
+        return respuestas.badRequest(
+            respuesta,
+            'Los datos del usuario son incompletos'
+        );
+    }
+
+    baseDatos.run(
+        'UPDATE usuarios SET nombre = ?, apellido = ?, Dni = ?, email = ?, telefono = ? WHERE id = ?',
+        [nombre.trim(), apellido.trim(), dni.trim(), email.trim(), telefonoNormalizado, id],
         function(error) {
             if (error) {
                 return respuestas.badRequest(
@@ -71,7 +84,7 @@ exports.actualizarUsuario = (peticion, respuesta) => {
 
             return respuestas.ok(
                 respuesta,
-                { id, nombre: nombre.trim() },
+                { id, nombre: nombre.trim(), apellido: apellido.trim(), dni: dni.trim(), email: email.trim(), telefono: telefonoNormalizado },
                 'Usuario actualizado correctamente'
             );
         }
