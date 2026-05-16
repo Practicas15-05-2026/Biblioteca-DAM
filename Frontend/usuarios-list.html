@@ -51,11 +51,11 @@
                     <table>
                         <thead>
                             <tr>
-                                <th>Nombre</th>
-                                <th>Apellido</th>
-                                <th>DNI</th>
-                                <th>Email</th>
-                                <th>Teléfono</th>
+                                <th id="nombre">Nombre</th>
+                                <th id="apellido">Apellido</th>
+                                <th id="DNI">DNI</th>
+                                <th id="emaill">Email</th>
+                                <th id="telefono">Teléfono</th>
                                 <th></th>
                             </tr>
                         </thead>
@@ -72,6 +72,11 @@
         document.getElementById('header-titulo').textContent = trad('usuarios');
         document.getElementById('btn-añadir').textContent = trad('añadirUsuario');
         document.getElementById('titulo-lista').textContent = trad('listaUsuarios');
+        document.getElementById('nombre').textContent = trad('nombre');
+        document.getElementById('apellido').textContent = trad('apellido');
+        document.getElementById('DNI').textContent = trad('DNI');
+        document.getElementById('email').textContent = trad('email');
+        document.getElementById('telefono').textContent = trad('telefono');
         marcarBandera();
     </script>
 </body>
