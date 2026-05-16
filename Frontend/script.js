@@ -1,71 +1,37 @@
 const API_URL = 'http://localhost:3000/api/usuarios';
 const LIBROS_URL = 'http://localhost:3000/api/libros';
 
-function mensajePorEstado(status) {
-    if (status === 400) return 'La peticion contiene datos invalidos';
-    if (status === 404) return 'El recurso solicitado no existe';
-    if (status >= 200 && status < 300) return 'Operacion realizada correctamente';
-    return 'Ha ocurrido un error inesperado';
-}
+function mostrarMensaje(mensaje, tipo) {
+    let caja = document.getElementById('mensaje-estado');
 
-function mostrarMensaje(mensaje, tipo = 'info') {
-    let contenedor = document.getElementById('mensaje-estado');
-
-    if (!contenedor) {
-        contenedor = document.createElement('div');
-        contenedor.id = 'mensaje-estado';
-        const main = document.querySelector('main');
-        if (main) main.prepend(contenedor);
+    if (!caja) {
+        caja = document.createElement('div');
+        caja.id = 'mensaje-estado';
+        document.querySelector('main').prepend(caja);
     }
 
-    contenedor.className = `mensaje-estado mensaje-${tipo}`;
-    contenedor.textContent = mensaje;
+    caja.className = `mensaje-estado mensaje-${tipo}`;
+    caja.textContent = mensaje;
 }
 
 function limpiarMensaje() {
-    const contenedor = document.getElementById('mensaje-estado');
-    if (contenedor) contenedor.textContent = '';
+    const caja = document.getElementById('mensaje-estado');
+    if (caja) caja.textContent = '';
 }
 
-function manejarError(error) {
-    console.error(error);
-
-    if (error.status === 400) {
-        mostrarMensaje(error.message, 'error');
-        return;
-    }
-
-    if (error.status === 404) {
-        mostrarMensaje(error.message, 'warning');
-        return;
-    }
-
-    mostrarMensaje('No se pudo conectar con el servidor', 'error');
+async function leerRespuesta(respuesta) {
+    const cuerpo = await respuesta.json();
+    return cuerpo;
 }
 
-async function procesarRespuesta(respuesta) {
-    let cuerpo = {};
-
-    try {
-        cuerpo = await respuesta.json();
-    } catch (error) {
-        cuerpo = {};
-    }
-
-    if (respuesta.ok) {
-        return cuerpo;
-    }
-
-    const error = new Error(cuerpo.mensaje || mensajePorEstado(respuesta.status));
-    error.status = respuesta.status;
-    error.codigo = cuerpo.error;
-    error.detalles = cuerpo.detalles;
-    throw error;
+function datos(cuerpo) {
+    return cuerpo.data || cuerpo;
 }
 
-function obtenerDatos(cuerpo) {
-    if (Array.isArray(cuerpo)) return cuerpo;
-    return cuerpo.data || [];
+function mensajeErrorPorStatus(status, cuerpo) {
+    if (status === 400) return cuerpo.mensaje || 'Error 400: datos invalidos';
+    if (status === 404) return cuerpo.mensaje || 'Error 404: recurso no encontrado';
+    return cuerpo.mensaje || 'Error inesperado';
 }
 
 function textoSeguro(valor) {
@@ -82,8 +48,15 @@ async function cargarUsuarios() {
     if (!tabla) return;
 
     try {
-        const cuerpo = await fetch(API_URL).then(procesarRespuesta);
-        const usuarios = obtenerDatos(cuerpo);
+        const respuesta = await fetch(API_URL);
+        const cuerpo = await leerRespuesta(respuesta);
+
+        if (respuesta.status !== 200) {
+            mostrarMensaje(mensajeErrorPorStatus(respuesta.status, cuerpo), 'error');
+            return;
+        }
+
+        const usuarios = datos(cuerpo);
 
         tabla.innerHTML = usuarios.map(usuario => `
             <tr>
@@ -95,12 +68,8 @@ async function cargarUsuarios() {
             </tr>
         `).join('');
     } catch (error) {
-        manejarError(error);
-        tabla.innerHTML = `
-            <tr>
-                <td class="columna" colspan="2">No se pudieron cargar los usuarios</td>
-            </tr>
-        `;
+        console.error(error);
+        mostrarMensaje('No se pudo conectar con el servidor', 'error');
     }
 }
 
@@ -143,14 +112,21 @@ if (usuarioFormulario) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ nombre })
             });
-            const cuerpo = await procesarRespuesta(respuesta);
+            const cuerpo = await leerRespuesta(respuesta);
 
-            mostrarMensaje(cuerpo.mensaje || mensajePorEstado(respuesta.status), 'success');
-            limpiarformulario();
-            cargarUsuarios();
-            actualizarSeleccionUsuarios();
+            if (respuesta.status === 200 || respuesta.status === 201) {
+                mostrarMensaje(cuerpo.mensaje, 'success');
+                limpiarformulario();
+                cargarUsuarios();
+                actualizarSeleccionUsuarios();
+            } else if (respuesta.status === 400) {
+                mostrarMensaje(mensajeErrorPorStatus(400, cuerpo), 'error');
+            } else if (respuesta.status === 404) {
+                mostrarMensaje(mensajeErrorPorStatus(404, cuerpo), 'warning');
+            }
         } catch (error) {
-            manejarError(error);
+            console.error(error);
+            mostrarMensaje('No se pudo conectar con el servidor', 'error');
         }
     });
 }
@@ -160,13 +136,18 @@ async function eliminar(id) {
 
     try {
         const respuesta = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
-        const cuerpo = await procesarRespuesta(respuesta);
+        const cuerpo = await leerRespuesta(respuesta);
 
-        mostrarMensaje(cuerpo.mensaje || mensajePorEstado(respuesta.status), 'success');
-        cargarUsuarios();
-        actualizarSeleccionUsuarios();
+        if (respuesta.status === 200) {
+            mostrarMensaje(cuerpo.mensaje, 'success');
+            cargarUsuarios();
+            actualizarSeleccionUsuarios();
+        } else if (respuesta.status === 404) {
+            mostrarMensaje(mensajeErrorPorStatus(404, cuerpo), 'warning');
+        }
     } catch (error) {
-        manejarError(error);
+        console.error(error);
+        mostrarMensaje('No se pudo conectar con el servidor', 'error');
     }
 }
 
@@ -175,8 +156,15 @@ async function cargarLibros() {
     if (!tabla) return;
 
     try {
-        const cuerpo = await fetch(LIBROS_URL).then(procesarRespuesta);
-        const libros = obtenerDatos(cuerpo);
+        const respuesta = await fetch(LIBROS_URL);
+        const cuerpo = await leerRespuesta(respuesta);
+
+        if (respuesta.status !== 200) {
+            mostrarMensaje(mensajeErrorPorStatus(respuesta.status, cuerpo), 'error');
+            return;
+        }
+
+        const libros = datos(cuerpo);
 
         tabla.innerHTML = libros.map(libro => `
             <tr class="block">
@@ -193,12 +181,8 @@ async function cargarLibros() {
             </tr>
         `).join('');
     } catch (error) {
-        manejarError(error);
-        tabla.innerHTML = `
-            <tr>
-                <td class="columna" colspan="5">No se pudieron cargar los libros</td>
-            </tr>
-        `;
+        console.error(error);
+        mostrarMensaje('No se pudo conectar con el servidor', 'error');
     }
 }
 
@@ -233,13 +217,16 @@ async function actualizarSeleccionUsuarios() {
     if (!seleccion) return;
 
     try {
-        const cuerpo = await fetch(API_URL).then(procesarRespuesta);
-        const usuarios = obtenerDatos(cuerpo);
+        const respuesta = await fetch(API_URL);
+        const cuerpo = await leerRespuesta(respuesta);
 
+        if (respuesta.status !== 200) return;
+
+        const usuarios = datos(cuerpo);
         seleccion.innerHTML = '<option value="">Sin dueno</option>' +
             usuarios.map(usuario => `<option value="${usuario.id}">${textoSeguro(usuario.nombre)}</option>`).join('');
     } catch (error) {
-        manejarError(error);
+        console.error(error);
     }
 }
 
@@ -250,15 +237,15 @@ if (libroFormulario) {
         limpiarMensaje();
 
         const id = document.getElementById('libro-id').value;
-        const datos = new FormData();
+        const formData = new FormData();
         const imagen = document.getElementById('imagen').files[0];
 
-        datos.append('titulo', document.getElementById('titulo').value);
-        datos.append('autor', document.getElementById('autor').value);
-        datos.append('usuarioId', document.getElementById('seleccion-usuario').value || '');
+        formData.append('titulo', document.getElementById('titulo').value);
+        formData.append('autor', document.getElementById('autor').value);
+        formData.append('usuarioId', document.getElementById('seleccion-usuario').value || '');
 
         if (imagen) {
-            datos.append('imagen', imagen);
+            formData.append('imagen', imagen);
         }
 
         const metodo = id ? 'PUT' : 'POST';
@@ -267,15 +254,22 @@ if (libroFormulario) {
         try {
             const respuesta = await fetch(url, {
                 method: metodo,
-                body: datos
+                body: formData
             });
-            const cuerpo = await procesarRespuesta(respuesta);
+            const cuerpo = await leerRespuesta(respuesta);
 
-            mostrarMensaje(cuerpo.mensaje || mensajePorEstado(respuesta.status), 'success');
-            limpiarlibroFormulario();
-            cargarLibros();
+            if (respuesta.status === 200 || respuesta.status === 201) {
+                mostrarMensaje(cuerpo.mensaje, 'success');
+                limpiarlibroFormulario();
+                cargarLibros();
+            } else if (respuesta.status === 400) {
+                mostrarMensaje(mensajeErrorPorStatus(400, cuerpo), 'error');
+            } else if (respuesta.status === 404) {
+                mostrarMensaje(mensajeErrorPorStatus(404, cuerpo), 'warning');
+            }
         } catch (error) {
-            manejarError(error);
+            console.error(error);
+            mostrarMensaje('No se pudo conectar con el servidor', 'error');
         }
     });
 }
@@ -285,12 +279,17 @@ async function eliminarLibro(id) {
 
     try {
         const respuesta = await fetch(`${LIBROS_URL}/${id}`, { method: 'DELETE' });
-        const cuerpo = await procesarRespuesta(respuesta);
+        const cuerpo = await leerRespuesta(respuesta);
 
-        mostrarMensaje(cuerpo.mensaje || mensajePorEstado(respuesta.status), 'success');
-        cargarLibros();
+        if (respuesta.status === 200) {
+            mostrarMensaje(cuerpo.mensaje, 'success');
+            cargarLibros();
+        } else if (respuesta.status === 404) {
+            mostrarMensaje(mensajeErrorPorStatus(404, cuerpo), 'warning');
+        }
     } catch (error) {
-        manejarError(error);
+        console.error(error);
+        mostrarMensaje('No se pudo conectar con el servidor', 'error');
     }
 }
 
