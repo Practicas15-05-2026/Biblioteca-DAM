@@ -36,11 +36,85 @@ function limpiarMensaje() {
     if (contenedor) contenedor.textContent = '';
 }
 
+function mensajeDetallesValidacion(detalles) {
+    if (!detalles || typeof detalles !== 'object') return '';
+    return Object.values(detalles).filter(Boolean).join(' ');
+}
+
+function validarTextoObligatorio(valor, campo, nombreLegible) {
+    if (valor === undefined || valor === null) {
+        return `El campo ${nombreLegible} es obligatorio`;
+    }
+
+    if (typeof valor !== 'string') {
+        return `El campo ${nombreLegible} debe ser texto`;
+    }
+
+    if (valor.trim() === '') {
+        return `El campo ${nombreLegible} es obligatorio`;
+    }
+
+    if (/^-?\d+$/.test(valor.trim())) {
+        return `El campo ${nombreLegible} no puede ser solo numeros`;
+    }
+
+    return null;
+}
+
+function validarTextoOpcional(valor, campo, nombreLegible) {
+    if (valor === undefined || valor === null || valor === '') {
+        return null;
+    }
+
+    if (typeof valor !== 'string') {
+        return `El campo ${nombreLegible} debe ser texto`;
+    }
+
+    return null;
+}
+
+function validarCamposFormulario(campos) {
+    const errores = {};
+
+    campos.forEach(({ id, campo, nombre, obligatorio }) => {
+        const input = document.getElementById(id);
+        const error = obligatorio
+            ? validarTextoObligatorio(input?.value, campo, nombre)
+            : validarTextoOpcional(input?.value, campo, nombre);
+
+        if (error) errores[campo] = error;
+    });
+
+    return errores;
+}
+
+function validarUsuarioFormulario() {
+    return validarCamposFormulario([
+        { id: 'nombre', campo: 'nombre', nombre: 'nombre', obligatorio: true },
+        { id: 'apellido', campo: 'apellido', nombre: 'apellido', obligatorio: true },
+        { id: 'dni', campo: 'dni', nombre: 'dni', obligatorio: true },
+        { id: 'email', campo: 'email', nombre: 'email', obligatorio: true },
+        { id: 'telefono', campo: 'telefono', nombre: 'telefono', obligatorio: false }
+    ]);
+}
+
+function validarLibroFormulario() {
+    return validarCamposFormulario([
+        { id: 'titulo', campo: 'titulo', nombre: 'titulo', obligatorio: true },
+        { id: 'autor', campo: 'autor', nombre: 'autor', obligatorio: true }
+    ]);
+}
+
+function hayErroresValidacion(errores) {
+    return Object.keys(errores).length > 0;
+}
+
 function manejarError(error) {
     console.error(error);
 
     if (error.status === 400) {
-        mostrarMensaje(error.message, 'error');
+        const detalles = mensajeDetallesValidacion(error.detalles);
+        mostrarMensaje(detalles || error.message, 'error');
         return;
     }
 
@@ -160,6 +234,8 @@ function limpiarformulario() {
 
 const usuarioFormulario = document.getElementById('usuario-formulario');
 if (usuarioFormulario) {
+    usuarioFormulario.setAttribute('novalidate', 'novalidate');
+
     usuarioFormulario.addEventListener('submit', async (evento) => {
         evento.preventDefault();
         limpiarMensaje();
@@ -170,6 +246,13 @@ if (usuarioFormulario) {
         const dni = document.getElementById('dni').value;
         const email = document.getElementById('email').value;
         const telefono = document.getElementById('telefono').value;
+        const errores = validarUsuarioFormulario();
+
+        if (hayErroresValidacion(errores)) {
+            mostrarMensaje(mensajeDetallesValidacion(errores), 'error');
+            return;
+        }
+
         const metodo = id ? 'PUT' : 'POST';
         const url = id ? `${API_URL}/${id}` : API_URL;
 
@@ -177,7 +260,13 @@ if (usuarioFormulario) {
             const respuesta = await fetch(url, {
                 method: metodo,
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ nombre, apellido, dni, email, telefono })
+                body: JSON.stringify({
+                    nombre: nombre.trim(),
+                    apellido: apellido.trim(),
+                    dni: dni.trim(),
+                    email: email.trim(),
+                    telefono: telefono.trim()
+                })
             });
             const cuerpo = await procesarRespuesta(respuesta);
 
@@ -316,6 +405,8 @@ async function actualizarSeleccionUsuarios() {
 
 const libroFormulario = document.getElementById('libro-formulario');
 if (libroFormulario) {
+    libroFormulario.setAttribute('novalidate', 'novalidate');
+
     libroFormulario.addEventListener('submit', async (evento) => {
         evento.preventDefault();
         limpiarMensaje();
@@ -323,9 +414,15 @@ if (libroFormulario) {
         const id = document.getElementById('libro-id').value;
         const datos = new FormData();
         const imagen = document.getElementById('imagen').files[0];
+        const errores = validarLibroFormulario();
 
-        datos.append('titulo', document.getElementById('titulo').value);
-        datos.append('autor', document.getElementById('autor').value);
+        if (hayErroresValidacion(errores)) {
+            mostrarMensaje(mensajeDetallesValidacion(errores), 'error');
+            return;
+        }
+
+        datos.append('titulo', document.getElementById('titulo').value.trim());
+        datos.append('autor', document.getElementById('autor').value.trim());
         datos.append('usuarioId', document.getElementById('seleccion-usuario').value || '');
 
         if (imagen) {

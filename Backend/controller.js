@@ -1,6 +1,77 @@
 const baseDatos = require('./database');
 const respuestas = require('./responses');
 
+function validarTextoObligatorio(datos, campo, nombreLegible) {
+    const valor = datos[campo];
+
+    if (valor === undefined || valor === null) {
+        return `El campo ${nombreLegible} es obligatorio`;
+    }
+
+    if (typeof valor !== 'string') {
+        return `El campo ${nombreLegible} debe ser texto`;
+    }
+
+    if (valor.trim() === '') {
+        return `El campo ${nombreLegible} es obligatorio`;
+    }
+
+    if (/^-?\d+$/.test(valor.trim())) {
+        return `El campo ${nombreLegible} no puede ser solo numeros`;
+    }
+
+    return null;
+}
+
+function validarTextoOpcional(datos, campo, nombreLegible) {
+    const valor = datos[campo];
+
+    if (valor === undefined || valor === null || valor === '') {
+        return null;
+    }
+
+    if (typeof valor !== 'string') {
+        return `El campo ${nombreLegible} debe ser texto`;
+    }
+
+    return null;
+}
+
+function validarCampos(datos, campos) {
+    const errores = {};
+
+    campos.forEach(({ campo, nombre, obligatorio }) => {
+        const error = obligatorio
+            ? validarTextoObligatorio(datos, campo, nombre)
+            : validarTextoOpcional(datos, campo, nombre);
+
+        if (error) errores[campo] = error;
+    });
+
+    return errores;
+}
+
+function validarUsuario(datos) {
+    return validarCampos(datos, [
+        { campo: 'nombre', nombre: 'nombre', obligatorio: true },
+        { campo: 'apellido', nombre: 'apellido', obligatorio: true },
+        { campo: 'dni', nombre: 'dni', obligatorio: true },
+        { campo: 'email', nombre: 'email', obligatorio: true },
+        { campo: 'telefono', nombre: 'telefono', obligatorio: false }
+    ]);
+}
+
+function validarLibro(datos) {
+    return validarCampos(datos, [
+        { campo: 'titulo', nombre: 'titulo', obligatorio: true },
+        { campo: 'autor', nombre: 'autor', obligatorio: true }
+    ]);
+}
+
+function tieneErrores(errores) {
+    return Object.keys(errores).length > 0;
+}
+
 exports.obtenerUsuarios = (peticion, respuesta) => {
     baseDatos.all('SELECT id, nombre, apellido, Dni AS dni, email, telefono FROM usuarios', [], function(error, filas) {
         if (error) {
@@ -21,14 +92,17 @@ exports.obtenerUsuarios = (peticion, respuesta) => {
 
 exports.crearUsuarios = (peticion, respuesta) => {
     const { nombre, apellido, dni, email, telefono } = peticion.body;
-    const telefonoNormalizado = telefono && telefono.trim() !== '' ? telefono.trim() : null;
+    const errores = validarUsuario(peticion.body);
 
-    if (!nombre || nombre.trim() === '' || !apellido || apellido.trim() === '' || !dni || dni.trim() === '' || !email || email.trim() === '') {
+    if (tieneErrores(errores)) {
         return respuestas.badRequest(
             respuesta,
-            'Los datos del usuario son incompletos'
+            'Hay campos incorrectos',
+            errores
         );
     }
+
+    const telefonoNormalizado = telefono && telefono.trim() !== '' ? telefono.trim() : null;
 
     baseDatos.run(
         'INSERT INTO usuarios (nombre, apellido, Dni, email, telefono) VALUES (?, ?, ?, ?, ?)',
@@ -54,14 +128,17 @@ exports.crearUsuarios = (peticion, respuesta) => {
 exports.actualizarUsuario = (peticion, respuesta) => {
     const { nombre, apellido, dni, email, telefono } = peticion.body;
     const { id } = peticion.params;
-    const telefonoNormalizado = telefono && telefono.trim() !== '' ? telefono.trim() : null;
+    const errores = validarUsuario(peticion.body);
 
-    if (!nombre || nombre.trim() === '' || !apellido || apellido.trim() === '' || !dni || dni.trim() === '' || !email || email.trim() === '') {
+    if (tieneErrores(errores)) {
         return respuestas.badRequest(
             respuesta,
-            'Los datos del usuario son incompletos'
+            'Hay campos incorrectos',
+            errores
         );
     }
+
+    const telefonoNormalizado = telefono && telefono.trim() !== '' ? telefono.trim() : null;
 
     baseDatos.run(
         'UPDATE usuarios SET nombre = ?, apellido = ?, Dni = ?, email = ?, telefono = ? WHERE id = ?',
@@ -141,12 +218,21 @@ exports.obtenerLibros = (peticion, respuesta) => {
 
 exports.crearLibros = (peticion, respuesta) => {
     const { titulo, autor, usuarioId } = peticion.body;
+    const errores = validarLibro(peticion.body);
     const usuarioIdNormalizado = usuarioId || null;
     const imagen = peticion.file ? `/uploads/${peticion.file.filename}` : null;
 
+    if (tieneErrores(errores)) {
+        return respuestas.badRequest(
+            respuesta,
+            'Hay campos incorrectos',
+            errores
+        );
+    }
+
     baseDatos.run(
         'INSERT INTO libros (titulo, autor, usuarioId, imagen) VALUES (?, ?, ?, ?)',
-        [titulo, autor, usuarioIdNormalizado, imagen],
+        [titulo.trim(), autor.trim(), usuarioIdNormalizado, imagen],
         function(error) {
             if (error) {
                 return respuestas.badRequest(
@@ -158,7 +244,7 @@ exports.crearLibros = (peticion, respuesta) => {
 
             return respuestas.created(
                 respuesta,
-                { id: this.lastID, titulo, autor, usuarioId: usuarioIdNormalizado, imagen },
+                { id: this.lastID, titulo: titulo.trim(), autor: autor.trim(), usuarioId: usuarioIdNormalizado, imagen },
                 'Libro creado correctamente'
             );
         }
@@ -168,12 +254,21 @@ exports.crearLibros = (peticion, respuesta) => {
 exports.actualizarLibros = (peticion, respuesta) => {
     const { titulo, autor, usuarioId } = peticion.body;
     const { id } = peticion.params;
+    const errores = validarLibro(peticion.body);
     const usuarioIdNormalizado = usuarioId || null;
     const imagen = peticion.file ? `/uploads/${peticion.file.filename}` : null;
 
+    if (tieneErrores(errores)) {
+        return respuestas.badRequest(
+            respuesta,
+            'Hay campos incorrectos',
+            errores
+        );
+    }
+
     baseDatos.run(
         'UPDATE libros SET titulo = ?, autor = ?, usuarioId = ?, imagen = COALESCE(?, imagen) WHERE id = ?',
-        [titulo, autor, usuarioIdNormalizado, imagen, id],
+        [titulo.trim(), autor.trim(), usuarioIdNormalizado, imagen, id],
         function(error) {
             if (error) {
                 return respuestas.badRequest(
@@ -192,7 +287,7 @@ exports.actualizarLibros = (peticion, respuesta) => {
 
             return respuestas.ok(
                 respuesta,
-                { id, titulo, autor, usuarioId: usuarioIdNormalizado, imagen },
+                { id, titulo: titulo.trim(), autor: autor.trim(), usuarioId: usuarioIdNormalizado, imagen },
                 'Libro actualizado correctamente'
             );
         }
