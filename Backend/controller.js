@@ -37,13 +37,44 @@ function validarTextoOpcional(datos, campo, nombreLegible) {
     return null;
 }
 
+function validarFormatoObligatorio(datos, campo, nombreLegible, expresion, formatoAceptado) {
+    const errorTexto = validarTextoObligatorio(datos, campo, nombreLegible);
+    if (errorTexto) return errorTexto;
+
+    if (!expresion.test(datos[campo].trim())) {
+        return `El campo ${nombreLegible} debe tener el formato: ${formatoAceptado}`;
+    }
+
+    return null;
+}
+
+function validarFormatoOpcional(datos, campo, nombreLegible, expresion, formatoAceptado) {
+    const errorTexto = validarTextoOpcional(datos, campo, nombreLegible);
+    if (errorTexto) return errorTexto;
+
+    const valor = datos[campo];
+    if (valor === undefined || valor === null || valor.trim() === '') {
+        return null;
+    }
+
+    if (!expresion.test(valor.trim())) {
+        return `El campo ${nombreLegible} debe tener el formato: ${formatoAceptado}`;
+    }
+
+    return null;
+}
+
 function validarCampos(datos, campos) {
     const errores = {};
 
-    campos.forEach(({ campo, nombre, obligatorio }) => {
-        const error = obligatorio
-            ? validarTextoObligatorio(datos, campo, nombre)
-            : validarTextoOpcional(datos, campo, nombre);
+    campos.forEach(({ campo, nombre, obligatorio, expresion, formato }) => {
+        const error = expresion
+            ? (obligatorio
+                ? validarFormatoObligatorio(datos, campo, nombre, expresion, formato)
+                : validarFormatoOpcional(datos, campo, nombre, expresion, formato))
+            : (obligatorio
+                ? validarTextoObligatorio(datos, campo, nombre)
+                : validarTextoOpcional(datos, campo, nombre));
 
         if (error) errores[campo] = error;
     });
@@ -55,9 +86,9 @@ function validarUsuario(datos) {
     return validarCampos(datos, [
         { campo: 'nombre', nombre: 'nombre', obligatorio: true },
         { campo: 'apellido', nombre: 'apellido', obligatorio: true },
-        { campo: 'dni', nombre: 'dni', obligatorio: true },
-        { campo: 'email', nombre: 'email', obligatorio: true },
-        { campo: 'telefono', nombre: 'telefono', obligatorio: false }
+        { campo: 'dni', nombre: 'dni', obligatorio: true, expresion: /^[0-9]{8}[A-Z]$/, formato: '8 numeros y 1 letra mayuscula. Ejemplo: 12345678X' },
+        { campo: 'email', nombre: 'email', obligatorio: true, expresion: /^[^\s@]+@[^\s@]+$/, formato: 'texto@texto' },
+        { campo: 'telefono', nombre: 'telefono', obligatorio: false, expresion: /^[0-9]{9}$/, formato: '9 numeros. Ejemplo: 600123456' }
     ]);
 }
 
